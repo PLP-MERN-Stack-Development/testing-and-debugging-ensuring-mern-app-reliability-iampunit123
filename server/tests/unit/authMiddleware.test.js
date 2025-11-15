@@ -1,9 +1,23 @@
+// Mock mongoose at the very top - before any imports
+jest.mock('mongoose', () => {
+  const actualMongoose = jest.requireActual('mongoose');
+  return {
+    ...actualMongoose,
+    Schema: actualMongoose.Schema,
+    model: jest.fn(),
+  };
+});
+
+// Now import the modules
 const authMiddleware = require('../../src/middleware/auth');
 const { verifyToken } = require('../../src/utils/auth');
-const User = require('../../src/models/User');
 
-jest.mock('../../src/utils/auth');
-jest.mock('../../src/models/User');
+// Mock User model
+jest.mock('../../src/models/User', () => ({
+  findById: jest.fn()
+}));
+
+const User = require('../../src/models/User');
 
 describe('Auth Middleware - Unit Tests', () => {
   let req, res, next;
@@ -17,6 +31,7 @@ describe('Auth Middleware - Unit Tests', () => {
       json: jest.fn()
     };
     next = jest.fn();
+    jest.clearAllMocks();
   });
 
   it('should call next() for valid token', async () => {
@@ -49,5 +64,16 @@ describe('Auth Middleware - Unit Tests', () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({ error: 'Invalid token' });
+  });
+
+  it('should return 401 if user not found', async () => {
+    req.header.mockReturnValue('Bearer valid-token');
+    verifyToken.mockReturnValue({ userId: '123' });
+    User.findById.mockResolvedValue(null);
+
+    await authMiddleware(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ error: 'User not found' });
   });
 });

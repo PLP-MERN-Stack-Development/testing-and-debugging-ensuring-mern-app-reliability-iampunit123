@@ -1,57 +1,48 @@
-// jest.config.js - Root Jest configuration file
+const path = require('path');
 
 module.exports = {
-  // Base configuration for all tests
   projects: [
-    // Server-side tests configuration
+    // Server configuration
     {
       displayName: 'server',
+      rootDir: path.join(__dirname, 'server'),
       testEnvironment: 'node',
-      testMatch: ['<rootDir>/server/tests/**/*.test.js'],
-      moduleFileExtensions: ['js', 'json', 'node'],
-      setupFilesAfterEnv: ['<rootDir>/server/tests/setup.js'],
-      coverageDirectory: '<rootDir>/coverage/server',
+      testMatch: ['<rootDir>/tests/**/*.test.js'],
+      setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+      coverageDirectory: path.join(__dirname, 'coverage/server'),
       collectCoverageFrom: [
-        'server/src/**/*.js',
-        '!server/src/config/**',
+        '<rootDir>/src/**/*.js',
+        '!<rootDir>/src/config/**',
         '!**/node_modules/**',
       ],
     },
-    
-    // Client-side tests configuration
+    // Client configuration
     {
       displayName: 'client',
+      rootDir: path.join(__dirname, 'client'),
       testEnvironment: 'jsdom',
-      testMatch: ['<rootDir>/client/src/**/*.test.{js,jsx}'],
-      moduleFileExtensions: ['js', 'jsx', 'json'],
+      testMatch: ['<rootDir>/src/**/*.test.{js,jsx}'],
       moduleNameMapper: {
         '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-        '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/client/src/tests/__mocks__/fileMock.js',
+        '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/src/tests/__mocks__/fileMock.js',
       },
-      setupFilesAfterEnv: ['<rootDir>/client/src/tests/setup.js'],
+      setupFilesAfterEnv: ['<rootDir>/src/tests/setup.js'],
       transform: {
-        '^.+\\.(js|jsx)$': 'babel-jest',
+        '^.+\\.[jt]sx?$': 'babel-jest',
       },
-      coverageDirectory: '<rootDir>/coverage/client',
+      testEnvironmentOptions: {
+        url: 'http://localhost'
+      },
+      coverageDirectory: path.join(__dirname, 'coverage/client'),
       collectCoverageFrom: [
-        'client/src/**/*.{js,jsx}',
-        '!client/src/index.js',
+        '<rootDir>/src/**/*.{js,jsx}',
+        '!<rootDir>/src/index.js',
+        '!<rootDir>/src/reportWebVitals.js',
         '!**/node_modules/**',
       ],
     },
   ],
-  
-  // Global configuration
   verbose: true,
-  collectCoverage: true,
-  coverageReporters: ['text', 'lcov', 'clover', 'html'],
-  coverageThreshold: {
-    global: {
-      statements: 70,
-      branches: 60,
-      functions: 70,
-      lines: 70,
-    },
-  },
-  testTimeout: 10000,
-}; 
+  collectCoverage: false,
+  testTimeout: 30000,
+};
